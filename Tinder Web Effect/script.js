@@ -1,7 +1,7 @@
-var users = [
+let users = [
     {
         progilepic: "https://images.unsplash.com/photo-1623366302587-b38b1ddaefd9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cG9ydHJhaXQlMjBtYW58ZW58MHx8MHx8fDA%3D",
-        displaypic: "https://plus.unsplash.com/premium_photo-1664369473447-64172945caa0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cG9ydHJhaXQlMjBnaXJsJTIwc21pbGV8ZW58MHx8MHx8fDA%3D",
+        displaypic: "https://images.unsplash.com/photo-1530021232320-687d8e3dba54?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGdpcmwlMjBpbiUyMG5lb24lMjBsaWdodHxlbnwwfHwwfHx8MA%3D%3D",
         pendingMsg: 2,
         location: "Delhi,India",
         name: "Harshita",
@@ -86,19 +86,19 @@ function select(elem) {
     return document.querySelector(elem);
 }
 
-var curr = 0;
+let curr = 0;
+let isAnimated = false;
 
-(function setIntials() {
-    select(".maincard img").src = users[curr].displaypic;
-    select(".incomingcard img").src = users[curr + 1].displaypic;
-    select(".prflimg img").src = users[curr].progilepic
-    select(".badge h5").textContent = users[curr].pendingMsg;
-    select(".location h3").textContent = users[curr].location;
-    select(".name h1:nth-child(1)").textContent = users[curr].name;
-    select(".name h1:nth-child(2)").textContent = users[curr].age;
 
-    var clutter = "";
-    users[curr].interests.forEach(function (interests) {
+function setData(index) {
+    select(".prflimg img").src = users[index].progilepic
+    select(".badge h5").textContent = users[index].pendingMsg;
+    select(".location h3").textContent = users[index].location;
+    select(".name h1:nth-child(1)").textContent = users[index].name;
+    select(".name h1:nth-child(2)").textContent = users[index].age;
+
+    let clutter = "";
+    users[index].interests.forEach(function (interests) {
         clutter += ` <div class="tag flex items-center rounded-full gap-3 bg-white/30 px-3 py-1">
                             ${interests.icon}
                             <h3 class="text-sm tracking-tight capitalize">${interests.interest}</h3>
@@ -106,7 +106,109 @@ var curr = 0;
     })
     select(".tags").innerHTML = clutter;
 
-    select(".bio p").textContent = users[curr].bio;
+    select(".bio p").textContent = users[index].bio;
+}
+
+(function setIntials() {
+    select(".maincard img").src = users[curr].displaypic;
+    select(".incomingcard img").src = users[curr + 1].displaypic;
+
+    setData(curr);
 
     curr = 2;
 })();
+
+
+function imageChange() {
+
+    if (!isAnimated) {  //true
+
+        isAnimated = true; //true then doing animattion
+
+        let tl = gsap.timeline({
+            onComplete: function () {
+
+                isAnimated = false; //false then doing animattion
+
+                let main = select(".maincard");
+                let incoming = select(".incomingcard");
+
+                incoming.classList.remove("z-[2]"); //incomingcard  add and remove
+                incoming.classList.add("z-[3]");
+
+                incoming.classList.remove("incomingcard"); //now it become maincard we will fix that
+
+                main.classList.remove("z-[3]"); //maincard  add and remove
+                main.classList.add("z-[2]");
+
+                //first we just reomve the main card due to tl but now we present which original attributes
+                //gsap chnage which happning in main card which is now incomingcard
+                gsap.set(main, {
+                    scale: 1,
+                    opacity: 1
+                })
+
+                if (curr === users.length) curr = 0;
+                select(".maincard img").src = users[curr].displaypic;
+                curr++;
+
+                main.classList.remove("maincard"); //remove maincard from main
+                incoming.classList.add("maincard"); //add maincard into incoming
+                main.classList.add("incomingcard");  //add incomingcard into main
+            }
+        });
+
+        tl.to(".maincard", {
+            scale: 1.1,
+            opacity: 0,
+            ease: Circ,
+            duration: .9
+        }, "a")
+            .from(".incomingcard", {
+                scale: .9,
+                opacity: 0,
+                ease: Circ,
+                duration: 1.1
+            }, "a")
+    }
+}
+
+let deny = select(".deny");
+let accept = select(".accept");
+
+deny.addEventListener("click", function () {
+    imageChange();
+    setData(curr - 1);
+
+    gsap.from(".details .element", {
+        y: "100%",
+        opacity: 0,
+        stagger: .06,
+        ease: Power4.easeInOut,
+        duration: 1.2
+    })
+});
+
+accept.addEventListener("click", function () {
+    imageChange();
+    setData(curr - 1);
+
+    gsap.from(".details .element", {
+        y: "100%",
+        opacity: 0,
+        stagger: .06,
+        ease: Power4.easeInOut,
+        duration: 1.2
+    })
+});
+
+(function containerCreator() {
+    document.querySelectorAll(".element")
+        .forEach(function (element) {
+            let div = document.createElement("div");
+            div.classList.add(`${element.classList[1]}container`, 'overflow-hidden');
+            div.appendChild(element)
+            select(".details").appendChild(div);
+        })
+})();
+
